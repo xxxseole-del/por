@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MY·PORTFOLIO — 作品集</title>
+
+<!-- ============================================================
+     作品集 HTML 框架 · Portfolio Framework
+     ------------------------------------------------------------
+     风格：Awwwards 获奖级设计语言（超大标题字 / 暗色高级质感 /
+           颗粒噪点 / 自定义光标 / 滚动渐显 / 艺术画笔元素）
+     结构：
+       ① 首页 Hero（居中大标题 "portfolio" + 艺术画笔图形）
+       ② 跑马灯字条（四大分类 中文+英文 循环）
+       ③ 关于我 About
+       ④ 目录 Directory（直接展示四大分类）
+       ⑤ 四大分类作品区：活动视觉 / 宣传物料 / 海报设计 / 包装设计
+          （作品位为空白占位框，后续自行替换为图片）
+       ⑥ 页脚 Footer
+     顶部导航带底色，点击分类平滑跳转到对应模块。
+     // TODO 标记处替换成你自己的内容
+     ============================================================ -->
+
+<!-- 字体：无衬线 Space Grotesk + 衬线 Instrument Serif -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   0. 设计变量 / Design Tokens
+   ============================================================ */
+:root{
+  --bg:        #111111;            /* 背景 深黑 */
+  --bg-soft:   #111111;            /* 次背景 */
+  --ink:       #f2f0ea;            /* 主文字 暖白 */
+  --ink-dim:   rgba(242,240,234,.55);
+  --line:      rgba(242,240,234,.14);
+  --accent:    #c6ff3d;            /* 强调色 酸橙 */
+  --accent-2:  #ff5c39;            /* 辅助强调 橙红 */
+  --serif:     "Instrument Serif", "Songti SC", serif;
+  --sans:      "Space Grotesk", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --ease:      cubic-bezier(.22,.61,.36,1);
+  --pad:       clamp(1.2rem, 4vw, 4rem);
+  --nav-h:     74px;
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+html{ scroll-behavior:smooth; }
+
+body{
+  background:#0a0a0a url("img/hero-bg.jpg") fixed center/cover;
+  color:var(--ink);
+  font-family:var(--sans);
+  font-weight:300;
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+::selection{ background:var(--accent); color:#0a0a0a; }
+
+img{ display:block; max-width:100%; }
+a{ color:inherit; text-decoration:none; }
+ul{ list-style:none; }
+section[id]{ scroll-margin-top: calc(var(--nav-h) + 10px); }
+
+::-webkit-scrollbar{ width:10px; }
+::-webkit-scrollbar-track{ background:var(--bg); }
+::-webkit-scrollbar-thumb{ background:#2a2a2a; border-radius:6px; }
+::-webkit-scrollbar-thumb:hover{ background:var(--accent); }
+
+/* ============================================================
+   1. 颗粒噪点纹理
+   ============================================================ */
+.grain{
+  position:fixed; inset:0;
+  pointer-events:none; z-index:9998;
+  opacity:.06; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   2. 自定义光标
+   ============================================================ */
+.cursor-dot, .cursor-ring{
+  position:fixed; top:0; left:0; z-index:9999;
+  pointer-events:none; border-radius:50%;
+  transform:translate(-50%,-50%);
+}
+.cursor-dot{ width:6px; height:6px; background:var(--accent); }
+.cursor-ring{
+  width:40px; height:40px;
+  border:1px solid var(--accent);
+  opacity:.5; transition:width .3s,height .3s,opacity .3s;
+}
+.cursor-ring.is-hover{ width:70px; height:70px; opacity:.2; background:var(--accent); }
+@media (hover:none){ .cursor-dot,.cursor-ring{ display:none; } }
+
+/* ============================================================
+   3. 预加载
+   ============================================================ */
+#preloader{
+  position:fixed; inset:0; z-index:10000;
+  background:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  transition:opacity .8s var(--ease), visibility .8s;
+}
+#preloader.done{ opacity:0; visibility:hidden; }
+#preloader .loader-text{
+  font-family:var(--serif); font-style:italic;
+  font-size:clamp(2rem,6vw,5rem);
+  letter-spacing:.1em; color:var(--ink);
+  overflow:hidden;
+}
+#preloader .loader-text span{ display:inline-block; transform:translateY(110%); animation:rise 1s var(--ease) forwards; }
+@keyframes rise{ to{ transform:translateY(0);} }
+
+/* ============================================================
+   4. 顶部导航（带底色）—— 字体大小同第一版
+   ============================================================ */
+.nav{
+  position:fixed; top:0; left:0; right:0;
+  z-index:900; height:var(--nav-h);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 var(--pad);
+  background:rgba(10,10,10,.88);
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+  transition:background .4s, box-shadow .4s;
+}
+.nav .logo{
+  font-size:1.05rem; font-weight:600; letter-spacing:.28em;
+  white-space:nowrap;
+}
+.nav .logo em{ color:var(--accent); font-style:normal; }
+.nav .menu{ display:flex; gap:clamp(1rem,2.4vw,2.2rem); }
+.nav .menu a{
+  font-size:.82rem; letter-spacing:.12em; text-transform:uppercase;
+  position:relative; opacity:.82; white-space:nowrap;
+  padding:.3rem 0; transition:opacity .3s, color .3s;
+}
+.nav .menu a::after{
+  content:""; position:absolute; left:0; bottom:-2px;
+  width:0; height:2px; background:var(--accent);
+  transition:width .35s var(--ease);
+}
+.nav .menu a:hover{ opacity:1; }
+.nav .menu a:hover::after{ width:100%; }
+.nav .menu a.active{ color:var(--accent); opacity:1; }
+.nav .menu a.active::after{ width:100%; }
+.nav .burger{ display:none; cursor:pointer; z-index:920; }
+
+/* ============================================================
+   5. 首页 Hero —— 居中大标题 + 艺术画笔图形
+   ============================================================ */
+.hero{
+  min-height:100vh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  position:relative; text-align:center;
+  padding:calc(var(--nav-h) + 2rem) var(--pad) 4rem;
+  overflow:hidden;
+  background:linear-gradient(rgba(10,10,10,.68),rgba(10,10,10,.68)),url("img/hero-bg.jpg");
+  background-size:cover; background-position:center; background-attachment:fixed;
+}
+.hero .hero-tag{
+  font-size:.82rem; letter-spacing:.4em; text-transform:uppercase;
+  color:var(--ink-dim); margin-bottom:1.4rem;
+  display:inline-flex; align-items:center; gap:1rem;
+}
+.hero .hero-tag::before, .hero .hero-tag::after{
+  content:""; width:40px; height:1px; background:var(--accent);
+}
+.hero-title-wrap{
+  position:relative; display:inline-block;
+  padding:.15em .2em;
+}
+.hero-title{
+  font-family:var(--serif); font-style:italic; font-weight:400;
+  font-size:clamp(3.6rem, 17vw, 15rem);
+  line-height:1; letter-spacing:-.02em; color:var(--ink);
+  position:relative; z-index:2;
+  user-select:none;
+}
+.hero-title .o{
+  color:var(--accent);
+  text-shadow:0 0 30px rgba(198,255,61,.45);
+}
+/* 艺术画笔笔刷（背景横扫笔画） */
+.brush{
+  position:absolute; z-index:1; width:130%; height:88%;
+  left:-15%; top:6%; pointer-events:none;
+  opacity:0; animation:fadeIn 1.2s ease 1.1s forwards;
+}
+@keyframes fadeIn{ to{ opacity:1; } }
+/* 手绘圆圈（加载时画出） */
+.scribble{
+  position:absolute; z-index:3; inset:-10% -12%;
+  width:124%; height:122%; pointer-events:none;
+  opacity:0; animation:fadeIn .3s ease .7s forwards;
+}
+.scribble path{ stroke-dasharray:360; stroke-dashoffset:360; animation:draw 1.8s ease .9s forwards; }
+@keyframes draw{ to{ stroke-dashoffset:0; } }
+/* 漂浮艺术图形 */
+.blob{
+  position:absolute; border-radius:50%; filter:blur(2px);
+  opacity:.55; pointer-events:none; z-index:0;
+  animation:float 9s ease-in-out infinite;
+}
+.blob.b1{ width:160px; height:160px; left:12%; top:22%;
+  background:radial-gradient(circle at 35% 35%, rgba(198,255,61,.5), transparent 70%); }
+.blob.b2{ width:120px; height:120px; right:14%; bottom:24%;
+  background:radial-gradient(circle at 35% 35%, rgba(255,92,57,.5), transparent 70%); animation-delay:-4s; }
+@keyframes float{
+  0%,100%{ transform:translateY(0) scale(1); }
+  50%{ transform:translateY(-26px) scale(1.08); }
+}
+.spark{ position:absolute; pointer-events:none; z-index:0; color:var(--accent); animation:twinkle 3.4s ease-in-out infinite; }
+.spark.s1{ font-size:1.3rem; left:22%; top:66%; }
+.spark.s2{ font-size:.9rem; right:24%; top:28%; color:var(--accent-2); animation-delay:-1.6s; }
+@keyframes twinkle{ 0%,100%{ opacity:.2; transform:scale(.8) rotate(0); } 50%{ opacity:1; transform:scale(1.15) rotate(20deg); } }
+.hero .hero-sub{
+  margin-top:2rem; font-size:clamp(.9rem,1.6vw,1.15rem);
+  color:var(--ink-dim); letter-spacing:.3em; text-transform:uppercase;
+}
+.hero .hero-scroll{
+  position:absolute; bottom:2rem; left:50%; transform:translateX(-50%);
+  font-size:.72rem; letter-spacing:.32em; text-transform:uppercase;
+  color:var(--ink-dim); display:flex; flex-direction:column; align-items:center; gap:.6rem;
+}
+.hero .hero-scroll::after{
+  content:""; width:1px; height:46px; background:var(--accent);
+  animation:scrollline 2.2s ease-in-out infinite;
+}
+@keyframes scrollline{
+  0%,100%{ transform:scaleY(0); transform-origin:top; }
+  50%{ transform:scaleY(1); transform-origin:top; }
+}
+
+/* ============================================================
+   6. 跑马灯字条（四大分类 中文+英文 循环）
+   ============================================================ */
+.marquee{
+  margin-top:-40px; position:relative; z-index:5;
+  border-top:1px solid rgba(255,255,255,.2);
+  border-bottom:none;
+  overflow:hidden; white-space:nowrap;
+  padding:.55rem 0;
+  background:rgba(255,255,255,.25);
+  -webkit-backdrop-filter:blur(10px) saturate(1.3);
+  backdrop-filter:blur(10px) saturate(1.3);
+}
+.marquee .track{ display:inline-block; animation:marquee 28s linear infinite; }
+.marquee span{
+  font-family:var(--sans); font-style:normal;
+  font-size:clamp(.85rem,1.8vw,1.2rem); font-weight:500;
+  margin-right:2.2rem; color:var(--ink);
+}
+.marquee span i{
+  font-style:normal; color:var(--accent); font-family:var(--sans);
+  font-size:.75rem; vertical-align:middle; letter-spacing:.2em;
+  margin-right:2.6rem;
+}
+@keyframes marquee{ to{ transform:translateX(-50%); } }
+
+/* ============================================================
+   7. 通用区块标题
+   ============================================================ */
+.section-head{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:2rem; margin-bottom:3rem; flex-wrap:wrap;
+}
+.section-head .no{
+  font-family:var(--serif); font-style:italic;
+  color:var(--accent); font-size:1.2rem;
+}
+.section-head h2{
+  font-size:clamp(2.4rem,7vw,5.5rem);
+  font-weight:600; line-height:1; letter-spacing:-.01em;
+  margin-top:.4rem;
+}
+.section-head h2 em{ font-family:"ZCOOL QingKe HuangYou",cursive; font-style:italic; font-weight:400; color:var(--accent); letter-spacing:.04em; }
+.section-head .head-desc{ max-width:380px; color:var(--ink-dim); font-size:.95rem; }
+
+/* 区块通用间距（顶部、底部内边距统一收紧，与跑马灯-关于我间距一致） */
+.block{ padding:calc(var(--pad)*1.1) var(--pad); background:rgba(14,14,14,.88); }
+.block + .block{ border-top:1px solid var(--line); }
+
+/* ============================================================
+   8. 关于我 About
+   ============================================================ */
+.about-title{
+  font-size:clamp(2.4rem, 9vw, 7rem);
+  font-weight:700; line-height:1; letter-spacing:-.02em;
+  margin-bottom:3rem;
+}
+.about-title em{ font-style:normal; color:var(--accent); }
+.about-body{ display:grid; grid-template-columns:repeat(12,1fr); gap:3rem; }
+.about-body .left{ grid-column:span 5; }
+.about-body .right{ grid-column:span 7; }
+.about-body .left p{ font-size:clamp(1rem,1.6vw,1.35rem); font-weight:300; color:var(--ink); max-width:46rem; line-height:1.8; }
+.about-body .left p .hl{ color:var(--accent); font-family:var(--serif); font-style:italic; }
+.about-cn{
+  font-size:clamp(1.5rem,2.8vw,2.2rem);
+  font-weight:600; line-height:1.2;
+  margin:-0.35rem 0 1.1rem;
+  position:relative; padding-left:1rem;
+}
+.about-cn::before{
+  content:""; position:absolute; left:0; top:.15em; bottom:.15em;
+  width:4px; background:var(--accent);
+}
+.about-desc{
+  color:var(--ink-dim);
+  font-size:.8rem; line-height:1.8; margin-bottom:.9rem;
+  text-align:justify;
+  text-align-last:left;
+}
+.about-desc .d-label{ color:var(--ink); font-weight:600; }
+.skills{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:3rem; }
+.skills .item h4{ font-size:1.45rem; letter-spacing:.28em; text-transform:uppercase; color:var(--accent); margin-bottom:1.4rem; }
+.skills .item ul li{ padding:1.25rem 0; border-bottom:1px solid var(--line); font-size:1.3rem; display:flex; justify-content:space-between; }
+.skills .item ul li span{ color:var(--ink-dim); font-size:1.05rem; font-family:var(--serif); font-style:italic; }
+.stats{ margin-top:4rem; display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.stats .stat{ padding:2rem 0; text-align:center; }
+.stats .stat + .stat{ border-left:1px solid var(--line); }
+.stats .num{ font-size:clamp(2rem,5vw,3.6rem); font-weight:600; font-family:var(--serif); }
+.stats .num i{ color:var(--accent); font-style:normal; }
+.stats .label{ font-size:.75rem; letter-spacing:.25em; text-transform:uppercase; color:var(--ink-dim); }
+
+/* ============================================================
+   9. 目录 Directory —— 直接展示四大分类（单行无重叠）
+   ============================================================ */
+.toc-grid{
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:clamp(1rem,2vw,1.6rem);
+}
+.toc-card{
+  position:relative; aspect-ratio:1/1;
+  border:1px solid var(--line);
+  background:linear-gradient(160deg, #161616, #0d0d0d);
+  padding:clamp(1.1rem,2vw,1.6rem);
+  display:flex; flex-direction:column; justify-content:space-between;
+  overflow:hidden; cursor:pointer;
+  transition:transform .5s var(--ease), border-color .5s var(--ease);
+}
+.toc-bg{                                /* 悬停显示的图片背景 */
+  position:absolute; inset:0; z-index:0;
+  background-size:cover; background-position:center;
+  opacity:0; transform:scale(1.06);
+  transition:opacity .5s var(--ease), transform .7s var(--ease);
+}
+.toc-bg::after{                         /* 图片暗色蒙层，保证文字可读 */
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(10,10,10,.92), rgba(10,10,10,.35) 55%, rgba(10,10,10,.65));
+}
+.c-activity  .toc-bg{ background-image:url("img/toc-activity.jpg?v=2"); }
+.c-material  .toc-bg{ background-image:url("img/toc-material.jpg?v=2"); }
+.c-poster    .toc-bg{ background-image:url("img/toc-poster.jpg?v=2"); }
+.c-packaging .toc-bg{ background-image:url("img/toc-packaging.jpg?v=2"); }
+.toc-card:hover .toc-bg{ opacity:1; transform:scale(1); }
+.toc-card::before{                          /* 悬停光晕 */
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(120% 120% at 50% 0%, rgba(198,255,61,.18), transparent 62%);
+  opacity:0; transition:opacity .5s var(--ease);
+}
+.toc-card::after{                           /* 底部强调线 */
+  content:""; position:absolute; left:0; bottom:0; height:3px; width:100%;
+  background:var(--accent); transform:scaleX(0); transform-origin:left;
+  transition:transform .5s var(--ease);
+}
+.toc-card:hover{ transform:translateY(-10px); border-color:var(--accent); }
+.toc-card:hover::before{ opacity:1; }
+.toc-card:hover::after{ transform:scaleX(1); }
+.toc-card .toc-no{
+  font-family:var(--sans); font-style:normal; font-weight:700;
+  color:var(--ink-dim); font-size:1.35rem;
+  position:relative; z-index:1; transition:color .35s;
+}
+.toc-card:hover .toc-no{ color:var(--accent); }
+.toc-card .toc-name{
+  font-size:clamp(1.5rem,3vw,2.2rem); font-weight:600; line-height:1.1;
+  transition:color .35s, transform .45s var(--ease);
+}
+.toc-card:hover .toc-name{ color:var(--accent); transform:translateY(-4px); }
+.toc-card .toc-en{
+  display:block; margin-top:.5rem;
+  font-size:.72rem; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--ink-dim);
+}
+.toc-card .toc-arrow{
+  align-self:flex-end; font-size:1.3rem; color:var(--ink-dim);
+  position:relative; z-index:1;
+  transition:color .35s, transform .45s var(--ease);
+}
+.toc-card .toc-body{ position:relative; z-index:1; }
+.toc-card:hover .toc-arrow{ color:var(--accent); transform:translate(4px,-4px); }
+
+/* ============================================================
+   10. 四大分类作品区（空白占位框，无项目文字）
+   ============================================================ */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:clamp(1.6rem,4vw,3.5rem);
+}
+.card .thumb{
+  position:relative; overflow:hidden;
+  aspect-ratio:1/1; background:transparent;
+}
+.card .thumb img{
+  width:100%; height:100%; object-fit:cover;
+  filter:grayscale(40%) contrast(1.05);
+  transform:scale(1.02);
+  transition:transform .8s var(--ease), filter .6s;
+}
+.card:hover .thumb img{ transform:scale(1.08); filter:grayscale(0%); }
+.card .thumb::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(10,10,10,.55), transparent 55%);
+  opacity:0; transition:opacity .5s;
+}
+.card:hover .thumb::after{ opacity:1; }
+.card .thumb .view{
+  position:absolute; left:50%; top:50%;
+  transform:translate(-50%,-50%) scale(.6);
+  opacity:0; z-index:2;
+  width:64px; height:64px; border-radius:50%;
+  background:var(--accent); color:#0a0a0a;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.68rem; font-weight:600; letter-spacing:.08em;
+  transition:all .45s var(--ease);
+}
+.card:hover .thumb .view{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+/* 空白占位框：正方形纯色 + 虚线边框，无任何文字 */
+.placeholder{
+  background:#0d0d0d;
+  border:1px dashed rgba(242,240,234,.18);
+}
+
+/* ===== 精选作品展示（项目背景 / 设计思路 / 元素介绍 + 主图） ===== */
+.card-featured{ grid-column:1/-1; }
+.featured-head{ margin-bottom:1.6rem; }
+.featured-inner{
+  display:grid;
+  grid-template-columns:0.92fr 1.08fr;
+  gap:clamp(1.5rem,3vw,3rem);
+  align-items:start;
+}
+.featured-media{ overflow:hidden; border:1px solid var(--line); }
+.featured-media .thumb{ aspect-ratio:3/2; }
+.featured-media .thumb img{ filter:none; transform:none; }
+/* 主图不做悬停缩放互动 */
+.card-featured:hover .featured-media .thumb img{ transform:none !important; filter:none !important; }
+.work-title{
+  font-size:clamp(1.6rem,3vw,2.6rem);
+  font-weight:600; line-height:1.15; letter-spacing:-.01em;
+  margin-bottom:.6rem;
+}
+.work-tag{
+  display:inline-block;
+  font-size:.72rem; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--accent);
+  border:1px solid var(--line);
+  padding:.3rem .9rem; border-radius:100px;
+  margin-bottom:1.4rem;
+}
+.work-block{
+  border-top:1px solid var(--line);
+  padding:.6rem 0;
+}
+.work-block h4{
+  font-size:1rem; letter-spacing:.28em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:.4rem;
+}
+.work-block p{
+  color:var(--ink-dim);
+  font-size:1.05rem; line-height:1.85;
+  text-align:justify;
+}
+
+/* ===== 作品分组小标题（设计电子图 / 实景落地） ===== */
+.sub-title{
+  grid-column:1/-1;
+  font-size:clamp(1.4rem,2.6vw,2rem);
+  font-weight:600; line-height:1.2;
+  margin:2.6rem 0 1.4rem;
+  display:flex; align-items:center; gap:1rem;
+}
+.sub-title::after{
+  content:""; flex:1; height:1px; background:var(--line);
+}
+.sub-title em{
+  font-style:normal; color:var(--accent);
+  font-size:.72em; font-weight:400; letter-spacing:.22em;
+  text-transform:uppercase;
+}
+/* 项目标题（分割线在标题上方） */
+.proj-title{
+  font-size:clamp(1.4rem,2.6vw,2rem);
+  font-weight:600; line-height:1.2;
+  margin:2.6rem 0 1.4rem;
+  padding-top:1.4rem;
+  border-top:1px solid var(--line);
+  display:flex; align-items:center; gap:.8rem;
+}
+.proj-title em{
+  font-style:normal; color:var(--accent);
+  font-size:.72em; font-weight:400; letter-spacing:.22em;
+  text-transform:uppercase;
+}
+
+/* ===== 作品图片网格 ===== */
+.work-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:clamp(1.2rem,3vw,2.2rem);
+}
+.work-item{
+  display:flex; flex-direction:column; gap:.7rem;
+}
+.work-item .frame{
+  position:relative; overflow:hidden;
+  background:transparent;
+  border:1px solid var(--line);
+}
+.work-item img{
+  width:100%; height:100%; display:block;
+}
+/* 设计电子图：固定 3:2 容器，完整显示不裁切 */
+.work-grid.design .frame{ aspect-ratio:3/2; }
+.work-grid.design img{ object-fit:contain; }
+/* 实景图：横图更宽、竖图更窄，每行3张共2行，行内等高（参考图一排版） */
+.work-grid.real{
+  display:grid;
+  grid-template-columns:2fr 2fr 0.75fr;
+  gap:clamp(1rem,2vw,1.6rem);
+  align-items:start;
+}
+.work-grid.real .work-item{ min-width:0; }
+.work-grid.real .frame{
+  overflow:hidden; border:1px solid var(--line); background:transparent;
+}
+.work-grid.real .work-item.hw .frame{ aspect-ratio:2/1; }
+.work-grid.real .work-item.vt .frame{ aspect-ratio:3/4; }
+.work-grid.real img{ width:100%; height:100%; object-fit:cover; }
+/* 项目行排版 */
+.proj-row{ display:grid; gap:clamp(1rem,2vw,1.6rem); align-items:start; margin-top:1.2rem; }
+.proj-row .work-item{ display:flex; flex-direction:column; }
+.proj-row .frame{ overflow:hidden; border:1px solid var(--line); background:transparent; }
+.proj-row .frame img{ width:100%; height:100%; object-fit:cover; }
+/* 第一行：电子图完整展示（不裁切），KV(1.8:1) + 接送卡(1.4:1) 等高 */
+.proj-row.row-2{ grid-template-columns:9fr 7fr; }
+.proj-row.row-2 .lead .frame{ aspect-ratio:1.8/1; }
+.proj-row.row-2 .follow .frame{ aspect-ratio:1.4/1; }
+.proj-row.row-2 img{ object-fit:contain; }
+/* 第二行：三张实景图等宽等比(4:3)，左中右排列 */
+.proj-row.row-3{ grid-template-columns:1fr 1fr 1fr; }
+.proj-row.row-3 .frame{ aspect-ratio:4/3; }
+/* 沐和南华寺：佛图铺满左右做低透明背景，左设计图 / 中分割线 / 右实景缩小全展示 */
+.muh-layout{ position:relative; display:grid; grid-template-columns:1fr 1px 1fr; gap:clamp(1rem,2vw,1.6rem); align-items:stretch; margin-top:1.2rem; border:1px solid var(--line); overflow:hidden; }
+.muh-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 88%; opacity:.32; z-index:0; }
+.muh-left, .muh-divider, .muh-right{ position:relative; z-index:1; }
+.muh-divider{ background:var(--line); }
+.muh-left{ display:flex; flex-direction:column; gap:clamp(.6rem,1.2vw,1rem); padding:clamp(.8rem,1.5vw,1.2rem); }
+.muh-left .frame{ aspect-ratio:2.1/1; overflow:hidden; border:1px solid var(--line); background:transparent; }
+.muh-left img{ width:100%; height:100%; object-fit:contain; }
+.muh-right{ display:flex; flex-direction:column; gap:clamp(.6rem,1.2vw,1rem); padding:clamp(.8rem,1.5vw,1.2rem); }
+.muh-right .work-item{ width:100%; display:flex; flex-direction:column; align-items:center; }
+.muh-right .frame{ max-width:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--line); background:transparent; }
+.muh-right img{ max-width:100%; max-height:100%; width:auto; height:auto; }
+/* 宣传物料：文化墙项目 */
+.mat-project{ margin-top:1rem; }
+.mat-title{ font-size:clamp(1.4rem,3vw,2rem); font-weight:600; margin-bottom:1rem; display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; }
+.mat-title span{ font-size:.72em; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); font-weight:400; }
+.mat-title em{ font-family:var(--serif); font-style:italic; font-weight:400; color:var(--accent); }
+.mat-desc{ max-width:720px; color:var(--ink-dim); font-size:1rem; line-height:1.9; margin-bottom:1.8rem; }
+.mat-desc .mat-scale{ display:block; font-size:1.05rem; color:var(--ink); font-weight:500; margin-bottom:.5rem; }
+.mat-design{ margin-bottom:2.2rem; overflow:hidden; border:1px solid var(--line); background:transparent; }
+.mat-design img{ width:100%; display:block; }
+.mat-real-title{ font-size:.85rem; letter-spacing:.28em; text-transform:uppercase; color:var(--accent); margin-bottom:1.2rem; }
+.mat-real{ display:grid; grid-template-columns:repeat(3,1fr); grid-auto-rows:1fr; gap:clamp(1rem,2vw,1.6rem); }
+.mat-real .work-item{ display:flex; flex-direction:column; }
+.mat-real .frame{ flex:1; overflow:hidden; border:1px solid var(--line); background:transparent; min-height:0; }
+.mat-real .frame img{ width:100%; height:100%; object-fit:cover; }
+.mat-real .tall{ grid-column:3; grid-row:span 2; }
+.mat-real figcaption{ font-size:.72rem; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-dim); margin-top:.5rem; }
+/* 宣传物料：第二个项目 宣传栏 */
+.mat-project + .mat-project{ margin-top:3.5rem; padding-top:2.5rem; border-top:1px solid var(--line); }
+.mat2-design{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(1rem,2vw,1.6rem); margin-bottom:.5rem; }
+.mat2-design .frame{ overflow:hidden; border:1px solid var(--line); background:transparent; }
+.mat2-design .frame img{ width:100%; display:block; }
+.mat2-real{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(1rem,2vw,1.6rem); max-width:78%; margin:0 auto; }
+.mat2-real .work-item{ display:flex; flex-direction:column; }
+.mat2-real .frame{ overflow:hidden; border:1px solid var(--line); background:transparent; aspect-ratio:16/9; }
+.mat2-real .frame img{ width:100%; height:100%; object-fit:cover; }
+.mat2-real figcaption{ font-size:.72rem; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-dim); margin-top:.5rem; }
+/* 宣传物料：第三个项目 展架+名片 四图横排 */
+.mat3-titles{ display:grid; grid-template-columns:1fr 1fr 1px 1.7fr 1.1fr; gap:clamp(1rem,2vw,1.4rem); align-items:center; margin-bottom:1rem; }
+.mat3-title-l{ grid-column:1/3; }
+.mat3-title-r{ grid-column:4/6; }
+.mat3-title-l, .mat3-title-r{
+  font-family:var(--sans);
+  font-style:normal;
+  font-size:clamp(1.3rem,2.8vw,2rem);
+  font-weight:700;
+  color:var(--ink);
+  display:flex;
+  align-items:center;
+  gap:.8rem;
+}
+.mat3-title-l span, .mat3-title-r span{
+  font-family:var(--sans);
+  font-style:normal;
+  font-size:.72em; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--accent);
+  font-weight:400;
+}
+.mat3-titles .sep{ grid-column:3; height:1px; background:var(--line); }
+.mat3-images{ display:grid; grid-template-columns:1fr 1fr 1px 1.7fr 1.1fr; gap:clamp(1rem,2vw,1.4rem); align-items:stretch; }
+.mat3-images .frame{ overflow:hidden; border:none; background:transparent; display:flex; align-items:center; justify-content:center; }
+.mat3-images .frame img{ max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; }
+.mat3-images .sep{ background:var(--line); }
+/* 宣传物料：第四个项目 手册设计 */
+.mat4-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(1rem,2vw,1.6rem); }
+.mat4-grid.col4{ grid-template-columns:repeat(4,1fr); }
+.mat4-grid .frame{ overflow:hidden; border:1px solid var(--line); background:transparent; display:flex; align-items:flex-start; justify-content:center; }
+.mat4-grid .frame.noborder{ border:none; background:transparent; }
+.mat4-grid .frame img{ width:100%; display:block; }
+.mat4-grid .work-item{ display:flex; flex-direction:column; }
+.mat4-grid figcaption{ font-size:.72rem; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-dim); margin-top:.5rem; }
+.mat4-divider{ height:1px; background:var(--line); margin:clamp(1.2rem,2.5vw,2rem) 0; }
+/* 海报设计：左竖版 + 右上下横版 */
+.poster-layout{ display:grid; grid-template-columns:0.75fr 2.2fr 0.9fr; gap:clamp(1rem,2vw,1.6rem); align-items:stretch; max-width:100%; }
+.poster-left{ display:flex; }
+.poster-left .frame{ flex:1; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.poster-left img{ width:100%; height:100%; object-fit:contain; }
+.poster-right{ display:flex; flex-direction:column; gap:clamp(1rem,2vw,1.6rem); }
+.poster-right .frame{ flex:1; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.poster-right img{ width:100%; height:100%; object-fit:contain; }
+.poster-jasmine{ display:flex; }
+.poster-jasmine .frame{ flex:1; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.poster-jasmine img{ width:100%; height:100%; object-fit:contain; }
+/* 更多海报四列两行 */
+.poster-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(1rem,2vw,1.6rem); margin-top:clamp(1.5rem,3vw,2.5rem); }
+.poster-grid .frame{ aspect-ratio:3/4; overflow:hidden; border:1px solid var(--line); background:transparent; display:flex; align-items:center; justify-content:center; }
+.poster-grid .frame img{ max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; }
+/* 包装设计：三福系列 */
+.pack-project{ margin-top:1rem; }
+.pack-header{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:clamp(1.5rem,3vw,2.5rem); flex-wrap:wrap; gap:1rem; }
+.pack-label{ font-size:clamp(1.6rem,3.2vw,2.4rem); font-weight:700; color:var(--ink); letter-spacing:.06em; position:relative; padding-bottom:.5rem; }
+.pack-label::after{ content:""; position:absolute; left:0; bottom:0; width:clamp(50px,6vw,80px); height:3px; background:var(--accent); border-radius:2px; }
+.pack-logo{ height:clamp(40px,5vw,72px); width:auto; display:block; }
+.pack-main{ display:grid; grid-template-columns:1fr 0.75fr; gap:clamp(1.5rem,3vw,3rem); align-items:start; margin-bottom:clamp(1.5rem,3vw,2.5rem); }
+.pack-text h4{ font-size:1.05rem; font-weight:600; margin:1.3rem 0 .5rem; color:var(--accent); letter-spacing:.05em; }
+.pack-text h4:first-child{ margin-top:0; }
+.pack-text p{ font-size:.92rem; line-height:1.95; color:var(--ink-dim); }
+.pack-colors{ display:flex; gap:.9rem; margin-top:1.6rem; }
+.pack-colors span{ width:clamp(38px,4vw,52px); height:clamp(38px,4vw,52px); border-radius:50%; flex-shrink:0; }
+.pack-posters{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(1rem,2vw,1.6rem); }
+.pack-posters .frame{ aspect-ratio:3/4; overflow:hidden; display:flex; align-items:center; justify-content:center; background:transparent; }
+.pack-posters img{ width:100%; height:100%; object-fit:contain; }
+.pack-bottom{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(1rem,2vw,1.6rem); }
+.pack-bottom .frame{ aspect-ratio:5/3; overflow:hidden; display:flex; align-items:center; justify-content:center; background:transparent; }
+.pack-bottom img{ height:100%; width:auto; max-width:100%; display:block; }
+/* 项目间分隔线 */
+.pack-divider{ height:1px; background:var(--line); margin:clamp(2.5rem,5vw,4rem) 0; }
+/* 超能系列底部：左2x2贴图 + 右刀版 */
+.pack-bottom2{ display:grid; grid-template-columns:0.75fr 1.25fr; gap:clamp(1.5rem,3vw,3rem); margin-top:clamp(1.5rem,3vw,2.5rem); align-items:end; }
+.pack-mockup{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(.8rem,1.5vw,1.2rem); }
+.pack-mockup .frame{ aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; overflow:hidden; background:transparent; }
+.pack-mockup img{ max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; }
+.pack-diecut{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(.8rem,1.5vw,1.2rem); }
+.pack-diecut .frame{ display:flex; align-items:flex-end; justify-content:center; overflow:hidden; background:transparent; }
+.pack-diecut img{ width:100%; height:auto; display:block; }
+/* 超能系列紧凑版 */
+.pack-chaoneng .pack-main{ margin-bottom:clamp(1rem,2vw,1.5rem); align-items:start; }
+.pack-chaoneng .cn-left{ display:flex; flex-direction:column; gap:clamp(.8rem,1.5vw,1.2rem); }
+.pack-chaoneng .pack-posters .frame{ aspect-ratio:3/4; }
+.pack-diecut-row{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(.8rem,1.5vw,1.2rem); }
+.pack-diecut-row .frame{ display:flex; align-items:center; justify-content:center; overflow:hidden; background:transparent; }
+.pack-diecut-row img{ width:100%; height:auto; display:block; }
+.pack-fourrow{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(1rem,2vw,1.6rem); }
+.pack-fourrow .frame{ aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; overflow:hidden; background:transparent; }
+.pack-fourrow img{ max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; }
+.work-item figcaption{
+  font-size:.72rem; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--ink-dim);
+}
+
+/* ============================================================
+   11. 联系 Contact
+   ============================================================ */
+.contact{ text-align:center; }
+.contact .kicker{ font-size:.8rem; letter-spacing:.35em; text-transform:uppercase; color:var(--ink-dim); margin-bottom:1.5rem; }
+.contact h2{ font-size:clamp(2.4rem,8vw,7rem); font-weight:600; line-height:1; }
+.contact h2 a{ transition:color .35s; position:relative; }
+.contact h2 a:hover{ color:var(--accent); }
+.contact h2 a::after{
+  content:""; position:absolute; left:0; bottom:.05em;
+  width:100%; height:2px; background:var(--accent);
+  transform:scaleX(0); transform-origin:right;
+  transition:transform .5s var(--ease);
+}
+.contact h2 a:hover::after{ transform:scaleX(1); transform-origin:left; }
+.contact .links{ margin-top:3rem; display:flex; justify-content:center; gap:2.5rem; flex-wrap:wrap; }
+.contact .links a{
+  font-size:.85rem; letter-spacing:.2em; text-transform:uppercase;
+  border:1px solid var(--line); padding:.7rem 1.8rem; border-radius:100px;
+  transition:all .35s var(--ease);
+}
+.contact .links a:hover{ background:var(--accent); color:#0a0a0a; border-color:var(--accent); font-weight:600; }
+
+/* ============================================================
+   12. 页脚
+   ============================================================ */
+footer{
+  border-top:1px solid var(--line);
+  background:rgba(10,10,10,.9);
+}
+.foot-main{
+  display:grid; grid-template-columns:2fr 1fr;
+  gap:clamp(1.5rem,4vw,3rem);
+  padding:clamp(2rem,5vw,3.5rem) var(--pad);
+}
+.foot-col h3{
+  font-size:1.2rem; font-weight:600; letter-spacing:.22em; text-transform:uppercase;
+  margin-bottom:1rem;
+}
+.foot-col h3 em{ color:var(--accent); font-style:normal; }
+.foot-col p{ font-size:.9rem; line-height:1.8; color:var(--ink-dim); max-width:420px; }
+.foot-col h4{
+  font-size:.78rem; letter-spacing:.28em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:1rem;
+}
+.foot-col a{
+  display:block; padding:.35rem 0; font-size:.9rem;
+  color:var(--ink-dim); transition:color .3s;
+}
+.foot-col a:hover{ color:var(--ink); }
+.foot-bottom{
+  border-top:1px solid var(--line);
+  padding:1.4rem var(--pad);
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  font-size:.75rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-dim);
+}
+.foot-bottom .top{
+  width:44px; height:44px; border:1px solid var(--line); border-radius:50%;
+  display:flex; align-items:center; justify-content:center; transition:all .35s;
+  justify-self:end;
+}
+.foot-bottom .top:hover{ background:var(--accent); color:#0a0a0a; border-color:var(--accent); }
+
+/* ============================================================
+   13. 滚动渐显
+   ============================================================ */
+.reveal{ opacity:0; transform:translateY(46px); transition:opacity .9s var(--ease), transform .9s var(--ease); }
+.reveal.in{ opacity:1; transform:none; }
+
+/* ============================================================
+   14. 响应式
+   ============================================================ */
+@media (max-width:900px){
+  .nav .menu{
+    position:fixed; inset:0; top:0;
+    background:var(--bg);
+    flex-direction:column; align-items:center; justify-content:center;
+    gap:2.2rem; font-size:1.3rem;
+    transform:translateY(-100%); transition:transform .6s var(--ease);
+    z-index:910;
+  }
+  .nav .menu.open{ transform:none; }
+  .nav .menu a{ opacity:1; }
+  .nav .burger{ display:flex; flex-direction:column; gap:5px; }
+  .nav .burger span{ width:26px; height:2px; background:var(--ink); transition:.3s; }
+  .nav .burger.open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+  .nav .burger.open span:nth-child(2){ opacity:0; }
+  .nav .burger.open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
+
+  .grid{ grid-template-columns:1fr; }
+  .featured-inner{ grid-template-columns:1fr; }
+  .work-grid{ grid-template-columns:1fr; }
+  .work-grid.real{ grid-template-columns:1fr; }
+  .proj-row{ grid-template-columns:1fr !important; }
+  .muh-layout{ grid-template-columns:1fr; }
+  .muh-divider{ display:none; }
+  .mat-real{ grid-template-columns:1fr; }
+  .mat-real .tall{ grid-column:auto; grid-row:auto; }
+  .mat2-design{ grid-template-columns:1fr; }
+    .mat2-real{ grid-template-columns:1fr; max-width:100%; }
+  .mat3-layout{ grid-template-columns:1fr; }
+  .mat3-divider{ display:none; }
+  .mat3-images{ grid-template-columns:1fr; }
+  .mat3-images .sep{ display:none; }
+  .mat3-titles .sep{ display:none; }
+  .mat4-grid{ grid-template-columns:1fr; }
+  .mat4-grid.col4{ grid-template-columns:1fr; }
+  .poster-layout{ grid-template-columns:1fr; max-width:100%; }
+  .poster-left img{ height:auto; width:100%; max-width:300px; object-fit:unset; }
+  .poster-jasmine img{ height:auto; width:100%; max-width:300px; object-fit:unset; }
+  .poster-grid{ grid-template-columns:1fr 1fr; }
+  .pack-main{ grid-template-columns:1fr; }
+  .pack-bottom{ grid-template-columns:1fr 1fr; }
+  .pack-bottom2{ grid-template-columns:1fr; }
+  .pack-sixgrid{ grid-template-columns:1fr 1fr; }
+  .pack-fourrow{ grid-template-columns:1fr 1fr; }
+  .muh-right .frame{ max-width:85%; }
+  .about-body .left, .about-body .right{ grid-column:1/-1; }
+  .stats{ grid-template-columns:1fr; }
+  .stats .stat + .stat{ border-left:none; border-top:1px solid var(--line); }
+  .toc-grid{ grid-template-columns:1fr 1fr; }
+  .foot-main{ grid-template-columns:1fr; }
+}
+
+@media (max-width:520px){
+  .toc-grid{ grid-template-columns:1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- 颗粒噪点 -->
+<div class="grain"></div>
+
+<!-- 自定义光标 -->
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- 预加载 -->
+<div id="preloader">
+  <div class="loader-text"><span>Portfolio</span></div>
+</div>
+
+<!-- ============================================================
+     顶部导航（带底色）—— 左侧 MY·PORTFOLIO · 右侧四大分类+关于
+     ============================================================ -->
+<nav class="nav" id="nav">
+  <a class="logo" href="#hero">MY<em>·</em>PORTFOLIO</a>
+
+  <div class="menu" id="menu">
+    <a href="#activity">活动视觉</a>
+    <a href="#material">宣传物料</a>
+    <a href="#poster">海报设计</a>
+    <a href="#packaging">包装设计</a>
+    <a href="#about">关于我</a>
+    <a href="#contact">联系</a>
+  </div>
+
+  <div class="burger" id="burger" aria-label="菜单">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- ============================================================
+     ① 首页 Hero —— "portfolio" 居中 + 艺术画笔/图形
+     ============================================================ -->
+<header class="hero" id="hero">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="spark s1">✳</div>
+  <div class="spark s2">✦</div>
+
+  <div class="hero-tag">Creative Portfolio — 2026</div>
+
+  <div class="hero-title-wrap">
+    <!-- 艺术画笔：背景横扫笔刷 -->
+    <svg class="brush" viewBox="0 0 800 200" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#c6ff3d" stop-opacity="0"/>
+          <stop offset=".5" stop-color="#c6ff3d" stop-opacity=".55"/>
+          <stop offset="1" stop-color="#c6ff3d" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="g2" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#ff5c39" stop-opacity="0"/>
+          <stop offset=".5" stop-color="#ff5c39" stop-opacity=".4"/>
+          <stop offset="1" stop-color="#ff5c39" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="M10,150 C200,55 420,205 790,85" stroke="url(#g1)" stroke-width="70" fill="none" stroke-linecap="round"/>
+      <path d="M20,40 C280,190 560,30 790,165" stroke="url(#g2)" stroke-width="46" fill="none" stroke-linecap="round"/>
+    </svg>
+
+    <!-- 大标题 -->
+    <h1 class="hero-title">p<em class="o">o</em>rtf<em class="o">o</em>lio</h1>
+
+    <!-- 手绘圆圈（加载动画画出） -->
+    <svg class="scribble" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M40,7 C25,9 8,22 8,50 C8,78 25,93 50,93 C75,93 92,78 92,50 C92,22 75,9 60,7"
+            fill="none" stroke="#c6ff3d" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <p class="hero-sub">创意 · 视觉 · 设计</p>
+
+  <a class="hero-scroll" href="#about">Scroll</a>
+</header>
+
+<!-- ============================================================
+     ② 跑马灯字条 —— 四大分类 中文+英文 循环
+     ============================================================ -->
+<div class="marquee" aria-hidden="true">
+  <div class="track">
+    <span>活动视觉 · Event Visual<i>●</i></span>
+    <span>宣传物料 · Promo Material<i>●</i></span>
+    <span>海报设计 · Poster Design<i>●</i></span>
+    <span>包装设计 · Packaging Design<i>●</i></span>
+  </div>
+</div>
+
+<!-- ============================================================
+     ③ 关于我 About（放在首页后面）
+     ============================================================ -->
+<section class="block about" id="about">
+  <h2 class="about-title reveal">ABOUT <em>ME</em></h2>
+  <div class="about-body">
+    <div class="left reveal">
+      <h3 class="about-cn">关于我</h3>
+      <p class="about-desc"><span class="d-label">活动视觉设计与项目落地</span>：独立完成活动主视觉（KV）及配套线下物料项目设计，涵盖背景板、打卡装置、拱门、手举牌等，跟进工艺打样、材质选型及制作流程，确保设计方案顺利落地。</p>
+      <p class="about-desc"><span class="d-label">品牌视觉物料设计</span>：独立负责品牌宣传物料及办公视觉设计，包括门头招牌、展架、文化墙、名片、手册、宣传栏、灯箱海报、车贴广告、节日海报等；完成版式设计、图片处理及视觉优化，保证品牌视觉统一。</p>
+    </div>
+    <div class="right reveal">
+      <div class="skills">
+        <div class="item">
+          <h4>擅长领域</h4>
+          <ul>
+            <li>活动主视觉与氛围 <span>Event Visual</span></li>
+            <li>宣传物料与印刷 <span>Material</span></li>
+            <li>海报与图形语言 <span>Poster</span></li>
+            <li>包装与品牌识别 <span>Packaging</span></li>
+          </ul>
+        </div>
+        <div class="item">
+          <h4>擅长工具</h4>
+          <ul>
+            <li>Illustrator / Photoshop / CorelDRAW</li>
+            <li>剪映 / Premiere Pro</li>
+            <li>Cinema 4D</li>
+            <li>豆包 / GPT / 即梦</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ④ 目录 Directory —— 直接展示四大分类（点击跳转到对应作品区）
+     ============================================================ -->
+<section class="block" id="directory">
+  <div class="section-head reveal">
+    <div>
+      <h2>作品<em>目录</em></h2>
+    </div>
+  </div>
+
+  <div class="toc-grid">
+    <a class="toc-card reveal c-activity" href="#activity">
+      <span class="toc-bg"></span>
+      <span class="toc-no">01</span>
+      <div class="toc-body">
+        <span class="toc-name">活动视觉</span>
+        <span class="toc-en">Event Visual</span>
+      </div>
+      <span class="toc-arrow">→</span>
+    </a>
+    <a class="toc-card reveal c-material" href="#material">
+      <span class="toc-bg"></span>
+      <span class="toc-no">02</span>
+      <div class="toc-body">
+        <span class="toc-name">宣传物料</span>
+        <span class="toc-en">Promo Material</span>
+      </div>
+      <span class="toc-arrow">→</span>
+    </a>
+    <a class="toc-card reveal c-poster" href="#poster">
+      <span class="toc-bg"></span>
+      <span class="toc-no">03</span>
+      <div class="toc-body">
+        <span class="toc-name">海报设计</span>
+        <span class="toc-en">Poster Design</span>
+      </div>
+      <span class="toc-arrow">→</span>
+    </a>
+    <a class="toc-card reveal c-packaging" href="#packaging">
+      <span class="toc-bg"></span>
+      <span class="toc-no">04</span>
+      <div class="toc-body">
+        <span class="toc-name">包装设计</span>
+        <span class="toc-en">Packaging Design</span>
+      </div>
+      <span class="toc-arrow">→</span>
+    </a>
+  </div>
+</section>
+
+<!-- ============================================================
+     ⑤-1 活动视觉 作品区（空白占位框）
+     ============================================================ -->
+<section class="block" id="activity">
+  <div class="section-head reveal">
+    <div>
+      <h2>活动<em>视觉</em></h2>
+    </div>
+  </div>
+
+  <div class="grid">
+    <article class="card reveal card-featured">
+      <div class="featured-head">
+        <h3 class="work-title">大宝山 · KV 视觉设计</h3>
+        <span class="work-tag">活动视觉 · Event Visual</span>
+      </div>
+      <div class="featured-inner">
+        <div class="featured-media">
+          <div class="thumb">
+            <img src="img/work-activity-1.png" alt="大宝山·KV视觉设计">
+          </div>
+        </div>
+        <div class="featured-body">
+          <div class="work-block">
+            <h4>项目背景</h4>
+            <p>本项目为企业大学生应届毕业生入职活动视觉设计，围绕“矿启新程，圆梦宝山”主题，结合企业IP形象与活动标语，完成主视觉KV及系列活动物料的视觉设计与延展，建立统一的活动视觉形象。</p>
+          </div>
+
+          <div class="work-block">
+            <h4>设计思路</h4>
+            <p>以“矿启新程，圆梦宝山”为核心主题，针对大学生应届生群体提取“青春、活力、阳光、能量”作为视觉关键词。通过明快的色彩、富有动感的图形与轻松活跃的版式，营造积极向上的入职氛围。将企业IP形象与企业文化理念“广聚天下英才，晟启美好未来”标语融入主视觉，在强化企业品牌识别的同时，赋予整体视觉更年轻、亲和的表达。</p>
+          </div>
+
+          <div class="work-block">
+            <h4>元素介绍</h4>
+            <p>蓝天白云 / 城市建筑 / 道路 / 纸飞机 / 热气球 / 企业IP / 矿业元素</p>
+          </div>
+
+          <div class="work-block">
+            <h4>色彩方案</h4>
+            <p>蓝色主调 / 黄橙点缀 / 白色辅助 / 多彩渐变</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <h3 class="sub-title reveal">设计电子图 <em>Design</em></h3>
+  <div class="work-grid design reveal">
+    <figure class="work-item">
+      <div class="frame"><img src="img/work-activity-1.png" alt="背景板"></div>
+      <figcaption>背景板</figcaption>
+    </figure>
+    <figure class="work-item">
+      <div class="frame"><img src="img/work-activity-arch.png" alt="拱门"></div>
+      <figcaption>拱门</figcaption>
+    </figure>
+    <figure class="work-item">
+      <div class="frame"><img src="img/work-activity-stairs.png" alt="台阶地贴"></div>
+      <figcaption>台阶地贴</figcaption>
+    </figure>
+    <figure class="work-item">
+      <div class="frame"><img src="img/work-activity-frame.png" alt="打卡门框"></div>
+      <figcaption>打卡门框</figcaption>
+    </figure>
+    <figure class="work-item">
+      <div class="frame"><img src="img/work-activity-sign.png" alt="指示牌"></div>
+      <figcaption>指示牌</figcaption>
+    </figure>
+    <figure class="work-item">
+      <div class="frame"><img src="img/work-activity-board.png" alt="手举牌"></div>
+      <figcaption>手举牌</figcaption>
+    </figure>
+  </div>
+
+  <h3 class="sub-title reveal">实景落地 <em>Real Scene</em></h3>
+  <div class="work-grid real reveal">
+    <figure class="work-item hw">
+      <div class="frame"><img src="img/real-wall.png" alt="主背景墙实景"></div>
+      <figcaption>主背景墙 · 实景</figcaption>
+    </figure>
+    <figure class="work-item hw">
+      <div class="frame"><img src="img/real-arch.png" alt="拱门实景"></div>
+      <figcaption>拱门 · 实景</figcaption>
+    </figure>
+    <figure class="work-item vt">
+      <div class="frame"><img src="img/real-frame1.png" alt="打卡门框实景1"></div>
+      <figcaption>打卡门框 · 实景 1</figcaption>
+    </figure>
+    <figure class="work-item hw">
+      <div class="frame"><img src="img/real-board.png" alt="手举牌实景"></div>
+      <figcaption>手举牌 · 实景</figcaption>
+    </figure>
+    <figure class="work-item hw">
+      <div class="frame"><img src="img/real-sign.png" alt="指示牌实景"></div>
+      <figcaption>指示牌 · 实景</figcaption>
+    </figure>
+    <figure class="work-item vt">
+      <div class="frame"><img src="img/real-frame2.png" alt="打卡门框实景2"></div>
+      <figcaption>打卡门框 · 实景 2</figcaption>
+    </figure>
+  </div>
+
+  <h3 class="proj-title reveal">暑期托管活动 <em>Summer Camp Event</em></h3>
+  <div class="proj-row row-2 reveal">
+    <figure class="work-item lead">
+      <div class="frame"><img src="img/sc-kv.png" alt="KV背景板"></div>
+      <figcaption>KV 背景板</figcaption>
+    </figure>
+    <figure class="work-item follow">
+      <div class="frame"><img src="img/sc-card.png" alt="接送卡"></div>
+      <figcaption>接送卡</figcaption>
+    </figure>
+  </div>
+  <div class="proj-row row-3 reveal">
+    <figure class="work-item lead">
+      <div class="frame"><img src="img/sc-real1.png" alt="背景板实景1"></div>
+      <figcaption>背景板 · 实景 1</figcaption>
+    </figure>
+    <figure class="work-item follow">
+      <div class="frame"><img src="img/sc-real2.png" alt="背景板实景2"></div>
+      <figcaption>背景板 · 实景 2</figcaption>
+    </figure>
+    <figure class="work-item follow">
+      <div class="frame"><img src="img/sc-real-card.png" alt="接送卡实景"></div>
+      <figcaption>接送卡 · 实景</figcaption>
+    </figure>
+  </div>
+
+  <h3 class="proj-title reveal">沐和南华寺活动 <em>Muhe Nanhua Temple</em></h3>
+  <div class="muh-layout reveal">
+    <img class="muh-bg" src="img/mh-buddha.jpg" alt="">
+    <div class="muh-left">
+      <figure class="work-item">
+        <div class="frame"><img src="img/mh-frame.png" alt="打卡门框"></div>
+        <figcaption>打卡门框</figcaption>
+      </figure>
+      <figure class="work-item">
+        <div class="frame"><img src="img/mh-hand.png" alt="打卡手牌"></div>
+        <figcaption>打卡手牌</figcaption>
+      </figure>
+    </div>
+    <div class="muh-divider"></div>
+    <div class="muh-right">
+      <figure class="work-item">
+        <div class="frame"><img src="img/mh-real1.png" alt="打卡门框实景1"></div>
+        <figcaption>实景 · 1</figcaption>
+      </figure>
+      <figure class="work-item">
+        <div class="frame"><img src="img/mh-real2.png" alt="打卡门框实景2"></div>
+        <figcaption>实景 · 2</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ⑤-2 宣传物料 作品区（空白占位框）
+     ============================================================ -->
+<section class="block" id="material">
+  <div class="section-head reveal">
+    <div>
+      <h2>宣传<em>物料</em></h2>
+    </div>
+  </div>
+  <div class="mat-project reveal">
+    <h3 class="mat-title">沐和生态 · 参观通道企业文化墙设计<span>Cultural Wall</span></h3>
+    <p class="mat-desc">
+      <span class="mat-scale">项目规模 | 约100米参观通道 | 双侧墙面</span>
+      独立完成项目约50%的视觉设计，并负责后期约80%内容的客户需求调整、版面优化。
+    </p>
+    <div class="mat-design">
+      <img src="img/mat-design.png" alt="参观通道文化墙设计图">
+    </div>
+    <h3 class="sub-title reveal">实景落地 <em>REAL SCENE</em></h3>
+    <div class="mat-real">
+      <figure class="work-item">
+        <div class="frame"><img src="img/mat-real1.jpg" alt="文化墙实景1"></div>
+        <figcaption>实景 · 1</figcaption>
+      </figure>
+      <figure class="work-item">
+        <div class="frame"><img src="img/mat-real2.jpg" alt="文化墙实景2"></div>
+        <figcaption>实景 · 2</figcaption>
+      </figure>
+      <figure class="work-item tall">
+        <div class="frame"><img src="img/mat-real5.jpg" alt="文化墙实景5"></div>
+        <figcaption>实景 · 5</figcaption>
+      </figure>
+      <figure class="work-item">
+        <div class="frame"><img src="img/mat-real3.jpg" alt="文化墙实景3"></div>
+        <figcaption>实景 · 3</figcaption>
+      </figure>
+      <figure class="work-item">
+        <div class="frame"><img src="img/mat-real4.jpg" alt="文化墙实景4"></div>
+        <figcaption>实景 · 4</figcaption>
+      </figure>
+    </div>
+  </div>
+  <!-- 第二个项目：大宝山企业宣传栏 -->
+  <div class="mat-project reveal">
+    <h3 class="mat-title">大宝山 · 企业宣传栏设计<span>Bulletin Board</span></h3>
+    <div class="mat2-design">
+      <div class="frame"><img src="img/mat2-1.png" alt="宣传栏设计1"></div>
+      <div class="frame"><img src="img/mat2-2.png" alt="宣传栏设计2"></div>
+      <div class="frame"><img src="img/mat2-3.png" alt="宣传栏设计3"></div>
+      <div class="frame"><img src="img/mat2-4.png" alt="宣传栏设计4"></div>
+    </div>
+    <h3 class="sub-title reveal">实景落地 <em>REAL SCENE</em></h3>
+    <div class="mat2-real">
+      <figure class="work-item">
+        <div class="frame"><img src="img/mat2-real1.jpg" alt="宣传栏实景1"></div>
+        <figcaption>实景 · 1</figcaption>
+      </figure>
+      <figure class="work-item">
+        <div class="frame"><img src="img/mat2-real2.jpg" alt="宣传栏实景2"></div>
+        <figcaption>实景 · 2</figcaption>
+      </figure>
+    </div>
+  </div>
+  <!-- 第三个项目：展架+名片 四图横排 -->
+  <div class="mat-project reveal">
+    <div class="mat3-titles">
+      <h3 class="mat3-title-l">展架设计<span>Display Stand</span></h3>
+      <div class="sep"></div>
+      <h3 class="mat3-title-r">名片设计<span>Business Card</span></h3>
+    </div>
+    <div class="mat3-images">
+      <div class="frame"><img src="img/mat3-stand.jpg" alt="展架设计" style="max-width:86%"></div>
+      <div class="frame"><img src="img/mat3-stand-real.jpg" alt="展架实景"></div>
+      <div class="sep"></div>
+      <div class="frame"><img src="img/mat3-card.png" alt="名片设计"></div>
+      <div class="frame"><img src="img/mat3-card-real.png" alt="名片实景"></div>
+    </div>
+  </div>
+  <!-- 第四个项目：手册设计 -->
+  <div class="mat-project reveal">
+    <h3 class="mat-title">手册设计<span>Handbook</span></h3>
+    <div class="mat4-grid col4">
+      <div class="frame noborder"><img src="img/mat4-1.png" alt="手册封面"></div>
+      <div class="frame noborder"><img src="img/mat4-2.jpg" alt="员工手册1"></div>
+      <div class="frame noborder"><img src="img/mat4-3.jpg" alt="员工手册2"></div>
+      <figure class="work-item"><div class="frame"><img src="img/mat4-real.png" alt="手册实景"></div><figcaption>实景</figcaption></figure>
+    </div>
+    <div class="mat4-divider"></div>
+    <div class="mat4-grid">
+      <div class="frame"><img src="img/mat4-4.png" alt="手册内页1"></div>
+      <div class="frame"><img src="img/mat4-5.png" alt="手册内页2"></div>
+      <div class="frame"><img src="img/mat4-6.png" alt="手册内页3"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ⑤-3 海报设计 作品区（空白占位框）
+     ============================================================ -->
+<section class="block" id="poster">
+  <div class="section-head reveal">
+    <div>
+      <h2>海报<em>设计</em></h2>
+    </div>
+  </div>
+
+  <div class="poster-layout reveal">
+    <div class="poster-left">
+      <div class="frame"><img src="img/poster-1.png" alt="湘满楼竖版海报"></div>
+    </div>
+    <div class="poster-right">
+      <div class="frame"><img src="img/poster-2.png" alt="湘满楼横版海报1"></div>
+      <div class="frame"><img src="img/poster-3.png" alt="湘满楼横版海报2"></div>
+    </div>
+    <div class="poster-jasmine">
+      <div class="frame"><img src="img/poster-more-1.jpg" alt="茉莉花茶海报"></div>
+    </div>
+  </div>
+  <div class="poster-grid reveal">
+    <div class="frame"><img src="img/poster-more-2.jpg" alt="家具海报1"></div>
+    <div class="frame"><img src="img/poster-more-3.jpg" alt="家具海报2"></div>
+    <div class="frame"><img src="img/poster-more-4.jpg" alt="榴莲饼海报1"></div>
+    <div class="frame"><img src="img/poster-more-5.jpg" alt="榴莲饼海报2"></div>
+    <div class="frame"><img src="img/poster-more-6.jpg" alt="水果海报"></div>
+    <div class="frame"><img src="img/poster-more-7.jpg" alt="哇哈哈海报1"></div>
+    <div class="frame"><img src="img/poster-more-8.jpg" alt="哇哈哈海报2"></div>
+    <div class="frame"><img src="img/poster-more-9.jpg" alt="哇哈哈海报3"></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ⑤-4 包装设计 作品区（空白占位框）
+     ============================================================ -->
+<section class="block" id="packaging">
+  <div class="section-head reveal">
+    <div>
+      <h2>包装<em>设计</em></h2>
+    </div>
+  </div>
+
+  <div class="pack-project reveal">
+    <div class="pack-header">
+      <span class="pack-label">三福系列</span>
+      <img class="pack-logo" src="img/pack-logo.png" alt="三福 SANFU logo">
+    </div>
+    <div class="pack-main">
+      <div class="pack-text">
+        <h4>项目背景</h4>
+        <p>三福"定格万千生活"主题系列包装设计</p>
+        <h4>设计说明</h4>
+        <p>通过独特的视觉语言与创新的包装形式，把三福原本的正方形方格改变成涂鸦风的飞溅液体，人物以卡通互动风格，体现包装涂鸦的趣味性和互动性，提升包装的视觉效果。色彩搭配保留了三福原本的色彩，并且将 logo 也搭配成彩色，在统一的风格中展现产品色彩的多样性。将三福品牌"发现生活之美"的理念具象化，以包装为载体捕捉美好瞬间，让消费者在使用产品时，能感受到生活的丰富多彩与品牌的温度。</p>
+        <div class="pack-colors">
+          <span style="background:#2B7DE9"></span>
+          <span style="background:#E91E8C"></span>
+          <span style="background:#C7CF01"></span>
+          <span style="background:#FF9800"></span>
+          <span style="background:#E53935"></span>
+        </div>
+      </div>
+      <div class="pack-posters">
+        <div class="frame"><img src="img/pack-1.jpg" alt="三福包装正稿1"></div>
+        <div class="frame"><img src="img/pack-2.jpg" alt="三福包装正稿2"></div>
+      </div>
+    </div>
+    <div class="pack-bottom">
+      <div class="frame"><img src="img/pack-5.png" alt="三福手提袋效果1"></div>
+      <div class="frame"><img src="img/pack-6.png" alt="三福手提袋效果2"></div>
+      <div class="frame"><img src="img/pack-3.png" alt="三福刀版展开图1"></div>
+      <div class="frame"><img src="img/pack-4.png" alt="三福刀版展开图2"></div>
+    </div>
+  </div>
+
+  <div class="pack-divider"></div>
+
+  <div class="pack-project pack-chaoneng reveal">
+    <div class="pack-header">
+      <span class="pack-label">超能系列</span>
+    </div>
+    <div class="pack-main">
+      <div class="cn-left">
+        <div class="pack-text">
+          <h4>项目背景</h4>
+          <p>超能洗衣液"生态科技，让运动更美好"主题系列</p>
+          <h4>设计说明</h4>
+          <p>作品使用品牌蓝绿、玫红标准色，以动感运动插画表现运动场景，可视化呈现污渍隔离、根源去汗臭、72 小时长效抑菌、保护运动面料机能等核心功效。包装与海报视觉体系统一，面向泛运动年轻群体，传递运动专洗的消费观念。整套设计具备品类延展性，兼顾货架辨识度与线上传播效果，塑造青春专业的运动洗护品牌形象。</p>
+        </div>
+        <div class="pack-diecut-row">
+          <div class="frame"><img src="img/chaoneng-3.png" alt="超能刀版展开图1"></div>
+          <div class="frame"><img src="img/chaoneng-4.png" alt="超能刀版展开图2"></div>
+        </div>
+      </div>
+      <div class="pack-posters">
+        <div class="frame"><img src="img/chaoneng-1.jpg" alt="超能包装正稿1"></div>
+        <div class="frame"><img src="img/chaoneng-2.jpg" alt="超能包装正稿2"></div>
+      </div>
+    </div>
+    <div class="pack-fourrow">
+      <div class="frame"><img src="img/chaoneng-5.png" alt="超能立体贴图1"></div>
+      <div class="frame"><img src="img/chaoneng-6.png" alt="超能立体贴图2"></div>
+      <div class="frame"><img src="img/chaoneng-7.jpg" alt="超能生成立体1"></div>
+      <div class="frame"><img src="img/chaoneng-8.jpg" alt="超能生成立体2"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     页脚
+     ============================================================ -->
+<footer id="contact">
+  <div class="foot-main">
+    <div class="foot-col">
+      <h3>MY<em>·</em>PORTFOLIO</h3>
+      <p>从商业项目到视觉表达，记录设计实践与思考。收录企业商业落地作品与部分在校作品，涵盖广告、品牌、包装，海报等多方向平面视觉设计。</p>
+    </div>
+    <div class="foot-col">
+      <h4>联系方式</h4>
+      <p>邮箱：3603722459@qq.com</p>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 zhangcuiyun — 保留所有权利</span>
+    <a class="top" href="#hero" aria-label="回到顶部">↑</a>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   1. 预加载
+   ============================================================ */
+window.addEventListener('load', () => {
+  setTimeout(() => document.getElementById('preloader').classList.add('done'), 500);
+});
+
+/* ============================================================
+   2. 自定义光标
+   ============================================================ */
+const dot = document.getElementById('cursorDot');
+const ring = document.getElementById('cursorRing');
+let mx=0, my=0, rx=0, ry=0;
+window.addEventListener('mousemove', e => {
+  mx=e.clientX; my=e.clientY;
+  dot.style.left = mx+'px';
+  dot.style.top  = my+'px';
+});
+(function animateRing(){
+  rx += (mx-rx)*0.16;
+  ry += (my-ry)*0.16;
+  ring.style.left = rx+'px';
+  ring.style.top  = ry+'px';
+  requestAnimationFrame(animateRing);
+})();
+document.querySelectorAll('a, button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>ring.classList.add('is-hover'));
+  el.addEventListener('mouseleave',()=>ring.classList.remove('is-hover'));
+});
+
+/* ============================================================
+   3. 移动端菜单
+   ============================================================ */
+const burger = document.getElementById('burger');
+const menu   = document.getElementById('menu');
+burger.addEventListener('click', () => {
+  burger.classList.toggle('open');
+  menu.classList.toggle('open');
+});
+menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  burger.classList.remove('open');
+  menu.classList.remove('open');
+}));
+
+/* ============================================================
+   4. 导航滚动高亮
+   ============================================================ */
+const sections = document.querySelectorAll('section[id], header[id], footer[id]');
+const navLinks = document.querySelectorAll('.nav .menu a[href^="#"]');
+function scrollSpy(){
+  let current = '';
+  sections.forEach(s => {
+    if(window.scrollY >= s.offsetTop - 140) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#'+current);
+  });
+}
+window.addEventListener('scroll', scrollSpy, { passive:true });
+
+/* ============================================================
+   5. 滚动渐显 + 数字统计
+   ============================================================ */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+  });
+}, { threshold:.12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+const countIO = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    if(!en.isIntersecting) return;
+    const el = en.target;
+    const target = +el.dataset.target;
+    let cur = 0;
+    const step = Math.max(1, Math.round(target/40));
+    const timer = setInterval(() => {
+      cur += step;
+      if(cur >= target){ cur = target; clearInterval(timer); }
+      el.textContent = cur;
+    }, 30);
+    countIO.unobserve(el);
+  });
+}, { threshold:.5 });
+document.querySelectorAll('.count').forEach(el => countIO.observe(el));
+
+/* ============================================================
+   6. 跑马灯无缝循环
+   ============================================================ */
+document.querySelectorAll('.marquee .track').forEach(track => {
+  track.innerHTML += track.innerHTML;
+});
+</script>
+</body>
+</html>
